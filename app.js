@@ -254,7 +254,7 @@ fetchReviews();
       text.style.fontSize = step.s;
       overlay.style.background = step.t.startsWith('⚠') ? '#000' :
         `hsl(${Math.random()*360},80%,8%)`;
-      await new Promise(r => setTimeout(r, 680));
+      await new Promise(r => setTimeout(r, 800));
     }
 
     overlay.style.display = 'none';
