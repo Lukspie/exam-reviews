@@ -153,20 +153,20 @@ fetchReviews();
 // ── Panak Fyzika ──
 (function () {
   const canvas = document.getElementById('panakCanvas');
-  const ctx = canvas.getContext('2d');
+  const ctx    = canvas.getContext('2d');
+  let visible  = false;
 
   function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
   }
   resize();
-  window.addEventListener('resize', () => { resize(); updatePos(); });
+  window.addEventListener('resize', resize);
 
-  const isMob = () => window.innerWidth < 640;
   let figX, figY;
   function updatePos() {
-    figX = isMob() ? window.innerWidth  * 0.50 : window.innerWidth  * 0.12;
-    figY = isMob() ? window.innerHeight * 0.78 : window.innerHeight * 0.73;
+    figX = window.innerWidth  * 0.5;
+    figY = window.innerHeight * 0.54;
   }
   updatePos();
 
@@ -180,98 +180,129 @@ fetchReviews();
     return { x: base.x + Math.cos(a0 - a) * l1, y: base.y + Math.sin(a0 - a) * l1 };
   }
 
-  const S = 0.9;
+  const S    = 1.3;
   const BODY = 50*S, HEAD = 13*S;
   const L1A  = 27*S, L2A  = 24*S;
   const L1L  = 31*S, L2L  = 29*S;
 
   const BASES = {
-    lHand: { x: -14, y: -BODY },
-    rHand: { x:  14, y: -BODY },
-    lFoot: { x: -11, y:  0   },
-    rFoot: { x:  11, y:  0   },
+    lHand: { x: -18, y: -BODY },
+    rHand: { x:  18, y: -BODY },
+    lFoot: { x: -14, y:  0   },
+    rFoot: { x:  14, y:  0   },
   };
 
   function restPos() {
     return {
-      lHand: { x: -38, y: -BODY + 18 },
-      rHand: { x:  38, y: -BODY + 18 },
-      lFoot: { x: -22, y:  L1L + L2L },
-      rFoot: { x:  22, y:  L1L + L2L },
+      lHand: { x: -52, y: -BODY + 24 },
+      rHand: { x:  52, y: -BODY + 24 },
+      lFoot: { x: -30, y:  L1L + L2L },
+      rFoot: { x:  30, y:  L1L + L2L },
     };
   }
 
-  const ends = restPos();
-  let activeLimb = null, retTimer = null;
+  // Spring state per limb: pos, vel, target
+  const sp = {};
+  function initSprings() {
+    const rest = restPos();
+    for (const k in BASES) {
+      sp[k] = { pos: { ...rest[k] }, vel: { x: 0, y: 0 }, target: { ...rest[k] } };
+    }
+  }
+  initSprings();
+
+  function stepSprings() {
+    const stiffness = 0.11, damping = 0.68;
+    for (const k in sp) {
+      const s = sp[k];
+      s.vel.x = (s.vel.x + (s.target.x - s.pos.x) * stiffness) * damping;
+      s.vel.y = (s.vel.y + (s.target.y - s.pos.y) * stiffness) * damping;
+      s.pos.x += s.vel.x;
+      s.pos.y += s.vel.y;
+    }
+  }
+
+  let retTimer = null;
 
   function hit(px, py) {
+    if (!visible) return;
     const lx = px - figX, ly = py - figY;
+
+    // Find closest limb end to tap point
     let best = 'lHand', bestD = Infinity;
-    for (const k in ends) {
-      const d = Math.hypot(lx - ends[k].x, ly - ends[k].y);
+    for (const k in sp) {
+      const d = Math.hypot(lx - sp[k].pos.x, ly - sp[k].pos.y);
       if (d < bestD) { bestD = d; best = k; }
     }
-    const b = BASES[best];
+
+    const b     = BASES[best];
     const isArm = best.endsWith('Hand');
-    const reach = (isArm ? L1A + L2A : L1L + L2L) * 0.94;
-    const dx = lx - b.x, dy = ly - b.y;
-    const d  = Math.hypot(dx, dy) || 1;
-    ends[best] = { x: b.x + (dx/d)*Math.min(d, reach), y: b.y + (dy/d)*Math.min(d, reach) };
-    activeLimb = best;
+    const reach = (isArm ? L1A + L2A : L1L + L2L) * 0.93;
+    const dx    = lx - b.x, dy = ly - b.y;
+    const d     = Math.hypot(dx, dy) || 1;
+
+    sp[best].target = { x: b.x + (dx/d)*Math.min(d, reach), y: b.y + (dy/d)*Math.min(d, reach) };
+    // Impact impulse for extra bounce
+    sp[best].vel.x += (dx/d) * 6;
+    sp[best].vel.y += (dy/d) * 6;
+
     clearTimeout(retTimer);
-    retTimer = setTimeout(springBack, 650);
+    retTimer = setTimeout(() => {
+      const rest = restPos();
+      for (const k in sp) sp[k].target = { ...rest[k] };
+    }, 600);
   }
 
-  function springBack() {
-    if (!activeLimb) return;
-    const limb   = activeLimb;
-    const target = restPos()[limb];
-    const start  = { ...ends[limb] };
-    let t = 0;
-    function step() {
-      t += 0.055;
-      if (t >= 1) { Object.assign(ends[limb], target); activeLimb = null; return; }
-      const e = 1 - Math.pow(1 - t, 3);
-      ends[limb] = { x: start.x + (target.x - start.x)*e, y: start.y + (target.y - start.y)*e };
-      requestAnimationFrame(step);
+  window.showPanak = function () {
+    visible = true;
+    updatePos();
+    document.querySelector('.center').style.opacity = '0';
+    document.querySelector('.center').style.pointerEvents = 'none';
+    // Entrance burst
+    for (const k in sp) {
+      sp[k].vel.x += (Math.random() - 0.5) * 18;
+      sp[k].vel.y += (Math.random() - 0.5) * 18;
     }
-    requestAnimationFrame(step);
-  }
+  };
 
   function drawFrame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.translate(figX, figY);
-    ctx.strokeStyle = '#555';
-    ctx.fillStyle   = '#555';
-    ctx.lineWidth   = 2.5;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
 
-    // Limbs
-    for (const [k, b] of Object.entries(BASES)) {
-      const e    = ends[k];
-      const isA  = k.endsWith('Hand');
-      const joint = ik(b, e, isA ? L1A : L1L, isA ? L2A : L2L);
-      ctx.beginPath();
-      ctx.moveTo(b.x, b.y);
-      ctx.lineTo(joint.x, joint.y);
-      ctx.lineTo(e.x, e.y);
-      ctx.stroke();
+    if (visible) {
+      stepSprings();
+
+      ctx.save();
+      ctx.translate(figX, figY);
+      ctx.strokeStyle = '#666';
+      ctx.fillStyle   = '#666';
+      ctx.lineWidth   = 3;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+
+      for (const [k, b] of Object.entries(BASES)) {
+        const e     = sp[k].pos;
+        const isA   = k.endsWith('Hand');
+        const joint = ik(b, e, isA ? L1A : L1L, isA ? L2A : L2L);
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y); ctx.lineTo(joint.x, joint.y); ctx.lineTo(e.x, e.y);
+        ctx.stroke();
+      }
+
+      ctx.beginPath(); ctx.moveTo(0, -BODY); ctx.lineTo(0, 0); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, -BODY - HEAD, HEAD, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.font      = '600 11px "DM Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('fyzika', 0, -BODY - HEAD * 2 - 8);
+
+      // Hint text
+      ctx.font      = '400 10px "DM Mono", monospace';
+      ctx.fillStyle = '#3a3a3a';
+      ctx.fillText('klikni kdekoľvek', 0, L1L + L2L + 28);
+
+      ctx.restore();
     }
 
-    // Torso
-    ctx.beginPath(); ctx.moveTo(0, -BODY); ctx.lineTo(0, 0); ctx.stroke();
-
-    // Head
-    ctx.beginPath(); ctx.arc(0, -BODY - HEAD, HEAD, 0, Math.PI * 2); ctx.stroke();
-
-    // Label
-    ctx.font      = '500 9px "DM Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('fyzika', 0, -BODY - HEAD * 2 - 6);
-
-    ctx.restore();
     requestAnimationFrame(drawFrame);
   }
   requestAnimationFrame(drawFrame);
