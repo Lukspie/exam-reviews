@@ -284,6 +284,20 @@ textarea {
   font-size: 2.6rem;
 }
 
+/* Vibecoded badge */
+.vibecoded {
+  position: fixed;
+  bottom: 1.2rem;
+  right: 1.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted2);
+  letter-spacing: 0.04em;
+  z-index: 20;
+  user-select: none;
+}
+
 /* ─── ADMIN ─── */
 body.admin-body {
   overflow: auto;

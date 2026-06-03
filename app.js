@@ -8,6 +8,7 @@ const headers = {
 };
 
 let reviews = [];
+let floatReviews = [];
 
 // ── Fetch reviews from Supabase ──
 async function fetchReviews() {
@@ -15,9 +16,15 @@ async function fetchReviews() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?approved=eq.true&order=created_at.desc`, { headers });
     if (!res.ok) return;
     reviews = await res.json();
+    const seen = new Set();
+    floatReviews = reviews.filter(r => {
+      if (seen.has(r.name)) return false;
+      seen.add(r.name);
+      return true;
+    });
     startFloating();
-  const countEl = document.getElementById("review-count");
-  if (countEl) countEl.textContent = reviews.length;
+    const countEl = document.getElementById("review-count");
+    if (countEl) countEl.textContent = reviews.length;
   } catch (e) {
     console.error('Fetch error:', e);
   }
@@ -28,9 +35,9 @@ const container = document.getElementById('float-container');
 let floatInterval = null;
 
 function spawnPill() {
-  if (reviews.length === 0) return;
+  if (floatReviews.length === 0) return;
 
-  const review = reviews[Math.floor(Math.random() * reviews.length)];
+  const review = floatReviews[Math.floor(Math.random() * floatReviews.length)];
   const pill = document.createElement('div');
   pill.className = 'float-pill';
 
@@ -66,7 +73,7 @@ function spawnPill() {
 }
 
 function startFloating() {
-  if (reviews.length === 0) return;
+  if (floatReviews.length === 0) return;
   // Spawn first few quickly
   for (let i = 0; i < Math.min(4, reviews.length); i++) {
     setTimeout(spawnPill, i * 1200);
