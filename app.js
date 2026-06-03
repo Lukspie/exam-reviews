@@ -169,6 +169,50 @@ function escapeHtml(str) {
 // ── Init ──
 fetchReviews();
 
+// ── Game section toggle ──
+let gameOpen = false;
+
+function toggleGame() {
+  gameOpen = !gameOpen;
+  const wrap   = document.getElementById('game-wrapper');
+  const toggle = document.getElementById('game-toggle');
+  const lock   = document.getElementById('card-lock');
+
+  if (gameOpen) {
+    wrap.classList.add('open');
+    toggle.classList.add('open');
+    toggle.querySelector('.toggle-label').textContent = 'Skry Fyzika Run';
+    lock.classList.add('visible');
+    if (window.fyzika_setPaused) window.fyzika_setPaused(false);
+  } else {
+    wrap.classList.remove('open');
+    toggle.classList.remove('open');
+    toggle.querySelector('.toggle-label').textContent = 'Zahraj si Fyzika Run';
+    lock.classList.remove('visible');
+    if (window.fyzika_setPaused) window.fyzika_setPaused(true);
+  }
+  updateCrazyBtn();
+}
+
+function unlockGame() {
+  const icon = document.getElementById('lock-icon');
+  icon.classList.add('unlocking');
+  icon.addEventListener('animationend', () => {
+    toggleGame();
+    icon.classList.remove('unlocking');
+    icon.style.opacity = '';
+  }, { once: true });
+}
+
+function updateCrazyBtn() {
+  const btn = document.getElementById('crazy-btn');
+  if (!gameOpen) { btn.disabled = false; return; }
+  const m = window.fyzika_gameMode ? window.fyzika_gameMode() : 'idle';
+  btn.disabled = (m === 'run');
+}
+
+document.addEventListener('fyzika-state', updateCrazyBtn);
+
 // ── GO CRAZY ──
 (function () {
   const canvas = document.getElementById('crazyCanvas');
@@ -387,6 +431,8 @@ fetchReviews();
     updatePos();
     document.querySelector('.center').style.opacity = '0';
     document.querySelector('.center').style.pointerEvents = 'none';
+    // Success/panak screen — GO CRAZY always works here
+    document.getElementById('crazy-btn').disabled = false;
     // Entrance burst
     for (const k in sp) {
       sp[k].vel.x += (Math.random() - 0.5) * 18;

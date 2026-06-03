@@ -119,18 +119,108 @@ body {
   }
 }
 
-/* Game wrapper */
+/* Game toggle bar */
+.game-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid #181818;
+  position: relative;
+  z-index: 9;
+  user-select: none;
+  transition: color 0.15s;
+}
+.game-toggle:hover { color: var(--text); }
+.toggle-chevron {
+  transition: transform 0.4s ease;
+  flex-shrink: 0;
+}
+.game-toggle.open .toggle-chevron { transform: rotate(180deg); }
+
+/* Game wrapper — collapsed by default */
 .game-wrapper {
   position: relative;
   width: 100%;
   z-index: 8;
-  border-bottom: 1px solid #181818;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom: 0px solid #181818;
+}
+.game-wrapper.open {
+  max-height: 210px;
+  border-bottom-width: 1px;
 }
 
 #game-canvas {
   display: block;
   width: 100%;
 }
+
+/* Card lock overlay */
+.card { position: relative; }
+.card-lock {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(13,13,13,0.88);
+  z-index: 5;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border-radius: 3px;
+  text-align: center;
+  padding: 1.5rem;
+}
+.card-lock.visible { display: flex; }
+.card-lock p {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.76rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+/* Lock icon */
+.lock-icon {
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+.lock-icon:hover { color: var(--text); }
+
+.lock-shackle {
+  transform-box: fill-box;
+  transform-origin: right bottom;
+  transition: transform 0.38s ease;
+}
+.lock-icon.unlocking .lock-shackle {
+  transform: rotate(42deg);
+}
+
+@keyframes lock-fade-out {
+  0%   { opacity: 1; }
+  55%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(0.85); }
+}
+.lock-icon.unlocking {
+  animation: lock-fade-out 0.65s ease forwards;
+  pointer-events: none;
+}
+
+/* GO CRAZY disabled state */
+.crazy-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
 /* Center layout */
 .center {
@@ -360,7 +450,7 @@ textarea {
 
 .crazy-btn {
   position: fixed;
-  top: 1rem;
+  top: 3.2rem;
   right: 1rem;
   z-index: 30;
   font-family: 'DM Mono', monospace;
