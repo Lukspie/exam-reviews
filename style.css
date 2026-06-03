@@ -287,14 +287,17 @@ textarea {
 /* Vibecoded badge */
 .vibecoded {
   position: fixed;
-  bottom: 1.2rem;
-  right: 1.4rem;
+  top: auto;
+  left: auto;
+  bottom: 18px;
+  right: 22px;
   font-family: 'DM Mono', monospace;
   font-size: 0.72rem;
   font-weight: 500;
-  color: var(--muted2);
+  color: var(--muted);
   letter-spacing: 0.04em;
   z-index: 20;
+  pointer-events: none;
   user-select: none;
 }
 
