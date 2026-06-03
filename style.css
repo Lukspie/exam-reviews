@@ -99,6 +99,18 @@ body {
   100% { opacity: 0; transform: translateY(-120px); }
 }
 
+@media (max-width: 639px) {
+  .float-pill {
+    border-color: var(--border2);
+  }
+  .float-pill-name {
+    color: #666;
+  }
+  .float-pill-comment {
+    color: #5a5a5a;
+  }
+}
+
 /* Center layout */
 .center {
   position: fixed;

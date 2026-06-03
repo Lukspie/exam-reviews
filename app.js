@@ -41,17 +41,21 @@ function spawnPill() {
   const pill = document.createElement('div');
   pill.className = 'float-pill';
 
-  // Random horizontal position (avoid center 30%)
+  const isMobile = window.innerWidth < 640;
   const side = Math.random() < 0.5 ? 'left' : 'right';
-  let left;
-  if (side === 'left') {
-    left = Math.random() * 32; // 0–32%
+  let left, startY;
+
+  if (isMobile) {
+    // Far edges only — card is full-width on mobile
+    left = side === 'left' ? Math.random() * 16 : 80 + Math.random() * 16;
+    // Below the card area only
+    startY = 75 + Math.random() * 20;
   } else {
-    left = 58 + Math.random() * 32; // 58–90%
+    // Desktop: avoid center 30%
+    left = side === 'left' ? Math.random() * 32 : 58 + Math.random() * 32;
+    startY = 55 + Math.random() * 40;
   }
 
-  // Random vertical start (bottom half, float up)
-  const startY = 55 + Math.random() * 40; // 55–95% from top
   const duration = 12 + Math.random() * 10; // 12–22s
 
   pill.style.cssText = `
