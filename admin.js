@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://ymdchsvjlommtwyzvpyy.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZGNoc3ZqbG9tbXR3eXp2cHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NzE1NjYsImV4cCI6MjA5NjA0NzU2Nn0.HllimI-r8jKob67JvB81tfDn4HsUsc6Zx710tcVGaSw';
 const EDGE_DELETE_URL = 'https://ymdchsvjlommtwyzvpyy.supabase.co/functions/v1/clever-action';
-const ADMIN_PASSWORD = 'Luk$p13#2026';
+const ADMIN_PASSWORD = 'neuhadnes123';
 
 const headers = {
   'apikey': SUPABASE_ANON,
