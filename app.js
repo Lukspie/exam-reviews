@@ -18,8 +18,9 @@ async function fetchReviews() {
     reviews = await res.json();
     const seen = new Set();
     floatReviews = reviews.filter(r => {
-      if (seen.has(r.name)) return false;
-      seen.add(r.name);
+      const key = `${r.name}|${r.comment}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
     startFloating();
