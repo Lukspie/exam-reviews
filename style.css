@@ -272,6 +272,8 @@ textarea {
   color: var(--muted);
   text-align: center;
   letter-spacing: 0.02em;
+  width: 420px;
+  max-width: 100%;
   animation: card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
