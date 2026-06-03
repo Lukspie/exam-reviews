@@ -433,3 +433,8 @@ body.admin-body {
   color: var(--text);
   font-weight: 800;
 }
+
+/* Fix center layout for counter */
+.center {
+  flex-direction: column;
+}
