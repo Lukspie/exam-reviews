@@ -1,5 +1,6 @@
 const SUPABASE_URL = 'https://ymdchsvjlommtwyzvpyy.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZGNoc3ZqbG9tbXR3eXp2cHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NzE1NjYsImV4cCI6MjA5NjA0NzU2Nn0.HllimI-r8jKob67JvB81tfDn4HsUsc6Zx710tcVGaSw';
+const EDGE_DELETE_URL = 'https://ymdchsvjlommtwyzvpyy.supabase.co/functions/v1/clever-action';
 const ADMIN_PASSWORD = 'Luk$p13#2026';
 
 const headers = {
@@ -8,7 +9,7 @@ const headers = {
   'Content-Type': 'application/json'
 };
 
-// ── Login ──
+// -- Login --
 function tryLogin() {
   const pass = document.getElementById('admin-pass').value;
   if (pass === ADMIN_PASSWORD) {
@@ -26,10 +27,10 @@ document.getElementById('admin-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') tryLogin();
 });
 
-// ── Load reviews ──
+// -- Load reviews --
 async function loadReviews() {
   const tbody = document.getElementById('reviews-tbody');
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--muted); padding: 2rem;">Načítavam...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--muted); padding: 2rem;">Nacitavam...</td></tr>`;
 
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?order=created_at.desc`, { headers });
@@ -38,7 +39,7 @@ async function loadReviews() {
     updateStats(data);
 
     if (data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--muted); padding: 2rem;">Žiadne správy.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--muted); padding: 2rem;">Ziadne spravy.</td></tr>`;
       return;
     }
 
@@ -50,25 +51,25 @@ async function loadReviews() {
         <td style="color: var(--muted); white-space: nowrap">${formatDate(r.created_at)}</td>
         <td>
           <span class="badge ${r.approved ? 'badge-approved' : 'badge-hidden'}">
-            ${r.approved ? 'viditeľné' : 'skryté'}
+            ${r.approved ? 'viditelne' : 'skryte'}
           </span>
         </td>
         <td style="white-space: nowrap; display: flex; gap: 6px;">
           <button class="action-btn" onclick="toggleApproved(${r.id}, ${r.approved})">
-            ${r.approved ? 'skryť' : 'zobraziť'}
+            ${r.approved ? 'skryt' : 'zobrazit'}
           </button>
-          <button class="action-btn danger" onclick="deleteReview(${r.id})">zmazať</button>
+          <button class="action-btn danger" onclick="deleteReview(${r.id})">zmazat</button>
         </td>
       </tr>
     `).join('');
 
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #ef4444; padding: 2rem;">Chyba pri načítaní.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: #ef4444; padding: 2rem;">Chyba pri nacitani.</td></tr>`;
     console.error(e);
   }
 }
 
-// ── Stats ──
+// -- Stats --
 function updateStats(data) {
   const today = new Date().toDateString();
   const todayCount = data.filter(r => new Date(r.created_at).toDateString() === today).length;
@@ -79,7 +80,7 @@ function updateStats(data) {
   document.getElementById('stat-approved').textContent = approvedCount;
 }
 
-// ── Toggle approved ──
+// -- Toggle approved --
 async function toggleApproved(id, current) {
   await fetch(`${SUPABASE_URL}/rest/v1/reviews?id=eq.${id}`, {
     method: 'PATCH',
@@ -89,17 +90,28 @@ async function toggleApproved(id, current) {
   loadReviews();
 }
 
-// ── Delete ──
+// -- Delete via Edge Function --
 async function deleteReview(id) {
-  if (!confirm('Naozaj zmazať túto správu?')) return;
-  await fetch(`${SUPABASE_URL}/rest/v1/reviews?id=eq.${id}`, {
-    method: 'DELETE',
-    headers
-  });
-  loadReviews();
+  if (!confirm('Naozaj zmazat tuto spravu?')) return;
+  try {
+    const res = await fetch(EDGE_DELETE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, password: ADMIN_PASSWORD })
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadReviews();
+    } else {
+      alert('Chyba pri mazani: ' + (data.error || 'unknown'));
+    }
+  } catch (e) {
+    console.error('Delete error:', e);
+    alert('Chyba pri mazani.');
+  }
 }
 
-// ── Helpers ──
+// -- Helpers --
 function formatDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit', year: 'numeric' })
