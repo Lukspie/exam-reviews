@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gratulujem!</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Floating reviews background -->
+  <div id="float-container"></div>
+
+  <!-- Grain overlay -->
+  <div class="grain"></div>
+
+  <!-- Center modal -->
+  <main class="center">
+    <div class="card" id="main-card">
+      <div class="card-header">
+        <span class="tag">message</span>
+      </div>
+
+      <div id="view-form">
+        <h1 class="title">Zanechaj správu.</h1>
+        <p class="subtitle">Každý komentár sa zobrazí ostatným.</p>
+
+        <div class="input-group">
+          <input type="text" id="input-name" maxlength="40" placeholder="Tvoje meno" autocomplete="off">
+          <textarea id="input-comment" maxlength="100" placeholder="Tvoja správa... (max 100 znakov)"></textarea>
+          <div class="char-count"><span id="char-num">0</span>/100</div>
+        </div>
+
+        <button id="submit-btn" onclick="submitReview()">
+          <span>Odoslať</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+        </button>
+      </div>
+
+      <div id="view-success" class="hidden">
+        <div class="success-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20,6 9,17 4,12"/></svg>
+        </div>
+        <h2 class="success-title">Gratulujem!</h2>
+        <p class="success-sub">Tvoja správa bola pridaná.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
