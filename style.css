@@ -417,3 +417,19 @@ body.admin-body {
 }
 .action-btn:hover { color: var(--text); border-color: #3a3a3a; }
 .action-btn.danger:hover { color: #ef4444; border-color: #ef4444; }
+
+/* Counter */
+.counter {
+  margin-top: 1.2rem;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.counter #review-count {
+  color: var(--text);
+  font-weight: 800;
+}
