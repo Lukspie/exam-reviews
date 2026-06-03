@@ -101,10 +101,11 @@ body {
 
 @media (max-width: 639px) {
   .card {
-    width: calc(100% - 2.4rem);
+    width: calc(100% - 4rem);
+    padding: 1.6rem 1.4rem;
   }
   .counter {
-    width: calc(100% - 2.4rem);
+    width: calc(100% - 4rem);
   }
   .float-pill {
     border-color: var(--border2);
