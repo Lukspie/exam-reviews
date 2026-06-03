@@ -97,6 +97,13 @@ async function submitReview() {
     return;
   }
 
+  // Test mode — skip DB
+  if (name.toLowerCase() === 'test') {
+    document.getElementById('view-form').classList.add('hidden');
+    document.getElementById('view-success').classList.remove('hidden');
+    return;
+  }
+
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.querySelector('span').textContent = 'Odosielam...';
@@ -149,6 +156,116 @@ function escapeHtml(str) {
 
 // ── Init ──
 fetchReviews();
+
+// ── GO CRAZY ──
+(function () {
+  const canvas = document.getElementById('crazyCanvas');
+  const ctx    = canvas.getContext('2d');
+  let crazyOn  = false;
+  let rafId    = null;
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Recursive lightning bolt as array of points
+  function buildBolt(x1, y1, x2, y2, rough, pts) {
+    if (rough < 5) { pts.push([x2, y2]); return; }
+    const mx  = (x1+x2)/2, my = (y1+y2)/2;
+    const len = Math.hypot(x2-x1, y2-y1) || 1;
+    const off = (Math.random()-0.5) * rough * 0.55;
+    const nx  = mx + -(y2-y1)/len * off;
+    const ny  = my +  (x2-x1)/len * off;
+    buildBolt(x1, y1, nx, ny, rough*0.52, pts);
+    buildBolt(nx, ny, x2, y2, rough*0.52, pts);
+  }
+
+  function spawnBolt() {
+    const x1 = Math.random() * canvas.width;
+    const x2 = x1 + (Math.random()-0.5) * 260;
+    const pts = [[x1, 0]];
+    buildBolt(x1, 0, x2, canvas.height, 180, pts);
+
+    const palette = ['#ffffff','#aac4ff','#fffaaa','#ffaaff','#aaffee'];
+    const col = palette[Math.floor(Math.random() * palette.length)];
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.strokeStyle = col;
+    ctx.lineWidth   = Math.random() * 1.8 + 0.4;
+    ctx.shadowBlur  = 18;
+    ctx.shadowColor = col;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+  }
+
+  function drawLoop() {
+    if (!crazyOn) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background flash
+    if (Math.random() < 0.25) {
+      const flashes = ['#ff000018','#0044ff18','#ffff0018','#ff00ff18','#00ffff18'];
+      ctx.fillStyle = flashes[Math.floor(Math.random() * flashes.length)];
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 1–3 bolts per frame randomly
+    const n = Math.random() < 0.6 ? Math.floor(Math.random() * 3) + 1 : 0;
+    for (let i = 0; i < n; i++) spawnBolt();
+
+    rafId = requestAnimationFrame(drawLoop);
+  }
+
+  function startCrazy() {
+    crazyOn = true;
+    canvas.style.display = 'block';
+    document.getElementById('crazy-btn').textContent = 'STOP';
+    document.getElementById('crazy-btn').classList.add('on');
+    drawLoop();
+  }
+
+  function stopCrazy() {
+    crazyOn = false;
+    cancelAnimationFrame(rafId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.style.display = 'none';
+    document.getElementById('crazy-btn').textContent = 'GO CRAZY';
+    document.getElementById('crazy-btn').classList.remove('on');
+  }
+
+  async function showWarning() {
+    const overlay = document.getElementById('epilepsy-overlay');
+    const text    = document.getElementById('epilepsy-text');
+    overlay.style.display = 'flex';
+
+    const steps = [
+      { t: '⚠ EPILEPSY\nWARNING !!!', c: '#ff3333', s: '3rem' },
+      { t: '3', c: '#ffff00', s: '7rem' },
+      { t: '2', c: '#ff8800', s: '7rem' },
+      { t: '1', c: '#ff3333', s: '7rem' },
+      { t: 'GO!!!',  c: '#ffffff', s: '6rem' },
+    ];
+
+    for (const step of steps) {
+      text.textContent  = step.t;
+      text.style.color  = step.c;
+      text.style.fontSize = step.s;
+      overlay.style.background = step.t.startsWith('⚠') ? '#000' :
+        `hsl(${Math.random()*360},80%,8%)`;
+      await new Promise(r => setTimeout(r, 680));
+    }
+
+    overlay.style.display = 'none';
+  }
+
+  window.initCrazy = async function () {
+    if (crazyOn) { stopCrazy(); return; }
+    await showWarning();
+    startCrazy();
+  };
+})();
 
 // ── Panak Fyzika ──
 (function () {
