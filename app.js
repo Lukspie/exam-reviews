@@ -16,6 +16,8 @@ async function fetchReviews() {
     if (!res.ok) return;
     reviews = await res.json();
     startFloating();
+  const countEl = document.getElementById("review-count");
+  if (countEl) countEl.textContent = reviews.length;
   } catch (e) {
     console.error('Fetch error:', e);
   }
