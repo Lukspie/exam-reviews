@@ -104,6 +104,18 @@ async function submitReview() {
     return;
   }
 
+  // Rate limit — max 1 review per 5 minutes
+  const lastSent = parseInt(localStorage.getItem('lastReview') || '0');
+  const cooldown = 5 * 60 * 1000;
+  if (Date.now() - lastSent < cooldown) {
+    const remaining = Math.ceil((cooldown - (Date.now() - lastSent)) / 60000);
+    const sub = document.getElementById('input-comment');
+    sub.setCustomValidity(`Počkaj ešte ${remaining} min.`);
+    sub.reportValidity();
+    setTimeout(() => sub.setCustomValidity(''), 3000);
+    return;
+  }
+
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.querySelector('span').textContent = 'Odosielam...';
@@ -119,9 +131,9 @@ async function submitReview() {
     });
 
     if (res.ok || res.status === 201) {
+      localStorage.setItem('lastReview', Date.now().toString());
       document.getElementById('view-form').classList.add('hidden');
       document.getElementById('view-success').classList.remove('hidden');
-      // Reload reviews to include new one
       fetchReviews();
     } else {
       btn.disabled = false;
